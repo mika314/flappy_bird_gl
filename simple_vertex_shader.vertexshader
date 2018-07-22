@@ -1,0 +1,44 @@
+#version 330 core
+
+layout(location = 0) in vec3 vertexPosition_modelspace;
+layout(location = 1) in vec3 vertexColor;
+uniform float angle;
+out vec3 fragmentColor;
+
+mat4 rotate(float angle, vec3 axis)
+{
+    axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+    
+    return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+                0.0,                                0.0,                                0.0,                                1.0);
+}
+mat4 scale(vec3 s)
+{
+  return mat4(s.x, 0, 0, 0,
+              0, s.y, 0, 0, 
+              0, 0, s.z, 0,
+              0, 0, 0, 1);
+}
+
+mat4 translate(vec3 t)
+{
+  return mat4(1, 0, 0, 0,
+              0, 1, 0, 0, 
+              0, 0, 1, 0,
+              t.x, t.y, t.z, 1);
+}
+
+void main()
+{
+  gl_Position.xyz = vertexPosition_modelspace;
+  gl_Position.w = 1.0;
+  float s = 0.2 * sin(angle * 0.301);
+  float c = sin(angle * 0.151) + 1;
+  gl_Position = translate(vec3(0.9 * sin(angle * 0.1), 0.9 * cos(angle * 0.103), 0)) * scale(vec3(s, s, s)) * rotate(angle, vec3(0.707, 0.707, 0)) * gl_Position;
+  fragmentColor = vertexColor * (c + 0.5);
+}
