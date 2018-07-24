@@ -2,8 +2,11 @@
 
 layout(location = 0) in vec3 vertexPosition_modelspace;
 layout(location = 1) in vec3 vertexColor;
+layout(location = 2) in vec2 vertexUV;
 uniform float angle;
-out vec3 fragmentColor;
+out vec2 uv;
+out float c;
+
 
 mat4 rotate(float angle, vec3 axis)
 {
@@ -38,7 +41,7 @@ void main()
   gl_Position.xyz = vertexPosition_modelspace;
   gl_Position.w = 1.0;
   float s = 0.2 * sin(angle * 0.301);
-  float c = sin(angle * 0.151) + 1;
   gl_Position = translate(vec3(0.9 * sin(angle * 0.1), 0.9 * cos(angle * 0.103), 0)) * scale(vec3(s, s, s)) * rotate(angle, vec3(0.707, 0.707, 0)) * gl_Position;
-  fragmentColor = vertexColor * (c + 0.5);
+  c = (sin(angle * 0.151) + 1 + 0.2) / 2;
+  uv = vertexUV;
 }

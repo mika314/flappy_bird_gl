@@ -6,12 +6,12 @@
 #include <iostream>
 #include <vector>
 
-int main()
+int main() try
 {
   sdl::Init init(SDL_INIT_EVERYTHING);
   const auto Width = 720;
   const auto Height = 720;
-  sdl::Window w("Graphs", 10, 35, Width, Height, SDL_WINDOW_BORDERLESS | SDL_WINDOW_OPENGL);
+  sdl::Window w("Go Cube", 10, 35, Width, Height, SDL_WINDOW_BORDERLESS | SDL_WINDOW_OPENGL);
   sdl::Renderer r(w.get(), -1, 0);
   sdl::EventHandler e;
   bool done = false;
@@ -26,15 +26,19 @@ int main()
     -1.0f, -1.0f, -1.0f, // triangle 1 : begin
     -1.0f, -1.0f, 1.0f,  //
     -1.0f, 1.0f,  1.0f,  // triangle 1 : end
+
     1.0f,  1.0f,  -1.0f, // triangle 2 : begin
     -1.0f, -1.0f, -1.0f, //
     -1.0f, 1.0f,  -1.0f, // triangle 2 : end
+
     1.0f,  -1.0f, 1.0f,  //
     -1.0f, -1.0f, -1.0f, //
     1.0f,  -1.0f, -1.0f, //
+
     1.0f,  1.0f,  -1.0f, //
     1.0f,  -1.0f, -1.0f, //
     -1.0f, -1.0f, -1.0f, //
+
     -1.0f, -1.0f, -1.0f, //
     -1.0f, 1.0f,  1.0f,  //
     -1.0f, 1.0f,  -1.0f, //
@@ -60,6 +64,25 @@ int main()
     -1.0f, 1.0f,  1.0f,  //
     1.0f,  -1.0f, 1.0f   //
   };
+  // This will identify our vertex buffer
+  GLuint vertexbuffer;
+  // Generate 1 buffer, put the resulting identifier in vertexbuffer
+  glGenBuffers(1, &vertexbuffer);
+  // The following commands will talk about our 'vertexbuffer' buffer
+  glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+  // Give our vertices to OpenGL.
+  glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+  // 1st attribute buffer : vertices
+  glEnableVertexAttribArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+  glVertexAttribPointer(
+    0,        // attribute 0. No particular reason for 0, but must match the layout in the shader.
+    3,        // size
+    GL_FLOAT, // type
+    GL_FALSE, // normalized?
+    0,        // stride
+    (void *)0 // array buffer offset
+  );
 
   // One color for each vertex. They were generated randomly.
   static const GLfloat g_color_buffer_data[] = {
@@ -104,7 +127,6 @@ int main()
   glGenBuffers(1, &colorbuffer);
   glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
   glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
-
   // 2nd attribute buffer : colors
   glEnableVertexAttribArray(1);
   glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
@@ -117,19 +139,81 @@ int main()
     (void *)0 // array buffer offset
   );
 
-  // This will identify our vertex buffer
-  GLuint vertexbuffer;
-  // Generate 1 buffer, put the resulting identifier in vertexbuffer
-  glGenBuffers(1, &vertexbuffer);
-  // The following commands will talk about our 'vertexbuffer' buffer
-  glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-  // Give our vertices to OpenGL.
-  glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-
   // Enable depth test
   glEnable(GL_DEPTH_TEST);
   // Accept fragment if it closer to the camera than the former one
   glDepthFunc(GL_LESS);
+
+  // Load texture
+  sdl::Texture texture(r.get(), sdl::Surface("texture.bmp").get());
+  texture.glBind(nullptr, nullptr);
+  // Make the array with texture coordinates
+  static const GLfloat g_uv_buffer_data[] = {
+    0, 0, //
+    0, 0, //
+    0, 0, //
+
+    1, 1, //
+    0, 0, //
+    0, 1, //
+
+    0, 0.1, //
+    0, 0.1, //
+    0, 0.1, //
+
+    1, 1, //
+    1, 0, //
+    0, 0, //
+
+    0, 0.2, //
+    0, 0.2, //
+    0, 0.2, //
+
+    0, 0.3, //
+    0, 0.3, //
+    0, 0.3, //
+
+    0, 0.4, //
+    0, 0.4, //
+    0, 0.4, //
+
+    0, 0.5, //
+    0, 0.5, //
+    0, 0.5, //
+
+    0, 0.6, //
+    0, 0.6, //
+    0, 0.6, //
+
+    0, 0.7, //
+    0, 0.7, //
+    0, 0.7, //
+
+    0, 0.8, //
+    0, 0.8, //
+    0, 0.8, //
+
+    0, 0.9, //
+    0, 0.9, //
+    0, 0.9  //
+  };
+  GLuint uvbuffer;
+  glGenBuffers(1, &uvbuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(g_uv_buffer_data), g_uv_buffer_data, GL_STATIC_DRAW);
+  // 3nd attribute buffer : uv
+  glEnableVertexAttribArray(2);
+  glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+  glVertexAttribPointer(
+    2,        // attribute. No particular reason for 1, but must match the layout in the shader.
+    2,        // size
+    GL_FLOAT, // type
+    GL_FALSE, // normalized?
+    0,        // stride
+    (void *)0 // array buffer offset
+  );
+
+  // Pass all this data to the shader
 
   const auto VertexFile = "simple_vertex_shader.vertexshader";
   const auto FragmentFile = "simple_fragment_shader.fragmentshader";
@@ -142,21 +226,9 @@ int main()
 
     auto programId = shader.get();
     glUseProgram(programId);
-
     GLint loc = glGetUniformLocation(programId, "angle");
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    // 1st attribute buffer : vertices
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glVertexAttribPointer(
-      0,        // attribute 0. No particular reason for 0, but must match the layout in the shader.
-      3,        // size
-      GL_FLOAT, // type
-      GL_FALSE, // normalized?
-      0,        // stride
-      (void *)0 // array buffer offset
-    );
     for (int i = 0; i < 100; ++i)
     {
       if (loc != -1)
@@ -168,7 +240,10 @@ int main()
         GL_TRIANGLES, 0, 3 * 12); // Starting from vertex 0; 3 vertices total -> 1 triangle
     }
     a += 0.002;
-    glDisableVertexAttribArray(0);
     r.present();
   }
+}
+catch (std::exception &e)
+{
+  std::cout << e.what() << std::endl;
 }
