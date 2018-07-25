@@ -5,14 +5,15 @@
 #include "shader_program.hpp"
 #include <iostream>
 #include <vector>
+#include <glm/gtc/matrix_transform.hpp>
 
 int main() try
 {
   sdl::Init init(SDL_INIT_EVERYTHING);
-  const auto Width = 720;
+  const auto Width = 1280;
   const auto Height = 720;
   sdl::Window w("Go Cube", 10, 35, Width, Height, SDL_WINDOW_BORDERLESS | SDL_WINDOW_OPENGL);
-  sdl::Renderer r(w.get(), -1, 0);
+  sdl::Renderer r(w.get(), -1, SDL_RENDERER_PRESENTVSYNC);
   sdl::EventHandler e;
   bool done = false;
   e.quit = [&done](const SDL_QuitEvent &) { done = true; };
@@ -219,27 +220,63 @@ int main() try
   const auto FragmentFile = "simple_fragment_shader.fragmentshader";
 
   ShaderProgram shader(VertexFile, FragmentFile);
-  float a = 0;
+  float alpha = 0;
   while (!done)
   {
     while (e.poll()) {}
 
     auto programId = shader.get();
     glUseProgram(programId);
-    GLint loc = glGetUniformLocation(programId, "angle");
+    GLint slAlpha = glGetUniformLocation(programId, "alpha");
+    GLint slX = glGetUniformLocation(programId, "x");
+    GLint slY = glGetUniformLocation(programId, "y");
+    GLint slMvp = glGetUniformLocation(programId, "mvp");
+
+    // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+    glm::mat4 Projection =
+      glm::perspective(glm::radians(45.0f), (float)Width / (float)Height, 0.1f, 100.0f);
+
+    // Or, for an ortho camera :
+    // glm::mat4 Projection = glm::ortho(-10.0f,10.0f,-10.0f,10.0f,0.0f,100.0f); // In world
+    // coordinates
+
+    // Camera matrix
+    glm::mat4 View =
+      glm::lookAt(glm::vec3(4.5, 10, 4.5),
+                  glm::vec3(4.5, 4.5, 0), // and looks at the origin
+                  glm::vec3(0, 0, 1)  // Head is up (set to 0,-1,0 to look upside-down)
+      );
+
+    // Model matrix : an identity matrix (model will be at the origin)
+    glm::mat4 Model = glm::mat4(1.0f);
+    // Our ModelViewProjection : multiplication of our 3 matrices
+    glm::mat4 mvp = Projection * View * Model; // Re
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    for (int i = 0; i < 100; ++i)
+    if (slAlpha != -1)
     {
-      if (loc != -1)
-      {
-        glUniform1f(loc, a * (i + 1) / 10.0f);
-      }
-      // Draw the triangle !
-      glDrawArrays(
-        GL_TRIANGLES, 0, 3 * 12); // Starting from vertex 0; 3 vertices total -> 1 triangle
+      glUniform1f(slAlpha, alpha);
     }
-    a += 0.002;
+    for (int y = 0; y < 3; ++y)
+      for (int x = 0; x < 3; ++x)
+      {
+        if (slX != -1)
+        {
+          glUniform1f(slX, x);
+        }
+        if (slY != -1)
+        {
+          glUniform1f(slY, y);
+        }
+        if (slMvp != -1)
+        {
+          glUniformMatrix4fv(slMvp, 1, GL_FALSE, &mvp[0][0]);
+        }
+        // Draw the triangle !
+        glDrawArrays(
+          GL_TRIANGLES, 0, 3 * 12); // Starting from vertex 0; 3 vertices total -> 1 triangle
+      }
+    alpha += 0.002;
     r.present();
   }
 }

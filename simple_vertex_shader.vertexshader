@@ -3,7 +3,10 @@
 layout(location = 0) in vec3 vertexPosition_modelspace;
 layout(location = 1) in vec3 vertexColor;
 layout(location = 2) in vec2 vertexUV;
-uniform float angle;
+uniform float alpha;
+uniform float x;
+uniform float y;
+uniform mat4 mvp;
 out vec2 uv;
 out float c;
 
@@ -40,8 +43,7 @@ void main()
 {
   gl_Position.xyz = vertexPosition_modelspace;
   gl_Position.w = 1.0;
-  float s = 0.2 * sin(angle * 0.301);
-  gl_Position = translate(vec3(0.9 * sin(angle * 0.1), 0.9 * cos(angle * 0.103), 0)) * scale(vec3(s, s, s)) * rotate(angle, vec3(0.707, 0.707, 0)) * gl_Position;
-  c = (sin(angle * 0.151) + 1 + 0.2) / 2;
+  gl_Position = mvp * translate(vec3(x * 3, y * 3, 0)) * rotate(alpha, vec3(0, 1, 0)) * gl_Position;
+  c = 1;
   uv = vertexUV;
 }
