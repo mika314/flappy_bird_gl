@@ -180,19 +180,17 @@ int main() try
   const auto VertexFile = "simple_vertex_shader.vertexshader";
   const auto FragmentFile = "simple_fragment_shader.fragmentshader";
 
-  ShaderProgram shader(VertexFile, FragmentFile);
-  float alpha = 0;
+  Var<float> alpha("alpha", 0);
+  Var<int> x("x");
+  Var<int> y("y");
+  Var<glm::mat4> mvp("mvp");
+
+  ShaderProgram shader(VertexFile, FragmentFile, alpha, x, y, mvp);
   while (!done)
   {
     while (e.poll()) {}
 
-    auto programId = shader.get();
-    glUseProgram(programId);
-    GLint slAlpha = glGetUniformLocation(programId, "alpha");
-    GLint slX = glGetUniformLocation(programId, "x");
-    GLint slY = glGetUniformLocation(programId, "y");
-    GLint slMvp = glGetUniformLocation(programId, "mvp");
-
+    shader.use();
     // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
     glm::mat4 Projection =
       glm::perspective(glm::radians(45.0f), (float)Width / (float)Height, 0.1f, 100.0f);
@@ -211,28 +209,16 @@ int main() try
     // Model matrix : an identity matrix (model will be at the origin)
     glm::mat4 Model = glm::mat4(1.0f);
     // Our ModelViewProjection : multiplication of our 3 matrices
-    glm::mat4 mvp = Projection * View * Model; // Re
+    mvp = Projection * View * Model; // Re
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    if (slAlpha != -1)
-    {
-      glUniform1f(slAlpha, alpha);
-    }
-    for (int y = 0; y < 3; ++y)
-      for (int x = 0; x < 3; ++x)
+    alpha.update();
+    for (y = 0; y < 3; ++y)
+      for (x = 0; x < 3; ++x)
       {
-        if (slX != -1)
-        {
-          glUniform1f(slX, x);
-        }
-        if (slY != -1)
-        {
-          glUniform1f(slY, y);
-        }
-        if (slMvp != -1)
-        {
-          glUniformMatrix4fv(slMvp, 1, GL_FALSE, &mvp[0][0]);
-        }
+        x.update();
+        y.update();
+        mvp.update();
         // Draw the triangle !
         glDrawArrays(
           GL_TRIANGLES, 0, 3 * 12); // Starting from vertex 0; 3 vertices total -> 1 triangle

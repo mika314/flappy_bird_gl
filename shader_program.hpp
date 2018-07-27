@@ -4,6 +4,8 @@
 #include <SDL_opengl.h>
 
 #include <stdexcept>
+#include <vector>
+#include "var.hpp"
 
 using LoadFileError = std::runtime_error;
 class CompileShaderError : public std::runtime_error
@@ -15,14 +17,21 @@ public:
 class ShaderProgram
 {
 public:
-  ShaderProgram(const std::string& vertex, const std::string& fragment);
+  ShaderProgram(const std::string &vertex, const std::string &fragment);
+  template <typename Arg, typename... Args>
+  ShaderProgram(const std::string &vertex, const std::string &fragment, Arg &arg, Args &... args)
+    : ShaderProgram(vertex, fragment, args...)
+  {
+    vars.push_back(&arg);
+    arg.updateLocation(programId);
+  }
   ~ShaderProgram();
-  GLuint get();
+  void use();
 
   // C++ boiler plate interface
-  ShaderProgram(const ShaderProgram&) = delete;
-  ShaderProgram& operator=(const ShaderProgram&) = delete;
-  ShaderProgram& operator=(ShaderProgram&& other)
+  ShaderProgram(const ShaderProgram &) = delete;
+  ShaderProgram &operator=(const ShaderProgram &) = delete;
+  ShaderProgram &operator=(ShaderProgram &&other)
   {
     if (this == &other)
       return *this;
@@ -30,11 +39,14 @@ public:
     other.programId = 0xffffffffU;
     return *this;
   }
-  
+
 private:
   GLuint programId;
   std::string vertexFileName;
   std::string fragmentFileName;
   time_t tsVertex = 0;
   time_t tsFragment = 0;
+  std::vector<BaseVar *> vars;
+
+  void updateVars();
 };

@@ -109,6 +109,7 @@ ShaderProgram::ShaderProgram(const std::string &vertex, const std::string &fragm
     tsVertex(getModificationTime(vertex)),
     tsFragment(getModificationTime(fragment))
 {
+  glUseProgram(programId);
 }
 
 ShaderProgram::~ShaderProgram()
@@ -118,7 +119,7 @@ ShaderProgram::~ShaderProgram()
   glDeleteShader(programId);
 }
 
-GLuint ShaderProgram::get()
+void ShaderProgram::use()
 {
   auto tsVertexNew = getModificationTime(vertexFileName);
   auto tsFragmentNew = getModificationTime(fragmentFileName);
@@ -131,11 +132,18 @@ GLuint ShaderProgram::get()
       auto newProgramId = loadShaders(vertexFileName.c_str(), fragmentFileName.c_str());
       glDeleteShader(programId);
       programId = newProgramId;
+      glUseProgram(programId);
+      updateVars();
     }
     catch (CompileShaderError &e)
     {
       std::cerr << e.what();
     }
   }
-  return programId;
+}
+
+void ShaderProgram::updateVars()
+{
+  for (auto &&v : vars)
+    v->updateLocation(programId);
 }
