@@ -5,7 +5,8 @@
 class ArrayBuffer
 {
 public:
-  ArrayBuffer(const GLfloat *data, int byteSize, int cnum, int attribute);
+  ArrayBuffer(const GLfloat *data, int size, int cnum, int attribute);
+  ArrayBuffer(const GLint *data, int size, int cnum, int attribute);
   ~ArrayBuffer();
   void activate();
 
@@ -13,4 +14,5 @@ private:
   GLuint id;
   GLuint attribute;
   int cNum;
+  GLenum type;
 };

@@ -1,0 +1,7 @@
+#version 330 core
+out vec3 color;
+in float c;
+
+void main(){
+  color = vec3(c, c, c);
+}

@@ -13,11 +13,19 @@ int main() try
   sdl::Init init(SDL_INIT_EVERYTHING);
   const auto Width = 1280;
   const auto Height = 720;
-  sdl::Window w("Go Cube", 10, 35, Width, Height, SDL_WINDOW_BORDERLESS | SDL_WINDOW_OPENGL);
+  sdl::Window w("Go Cube", 64, 126, Width, Height, SDL_WINDOW_BORDERLESS | SDL_WINDOW_OPENGL);
+
   sdl::Renderer r(w.get(), -1, SDL_RENDERER_PRESENTVSYNC);
   sdl::EventHandler e;
   bool done = false;
+  float camY = 13;
   e.quit = [&done](const SDL_QuitEvent &) { done = true; };
+  e.mouseWheel = [&camY](const SDL_MouseWheelEvent &e) {
+    if (e.y > 0)
+      camY *= 1.03;
+    else
+      camY *= 0.97;
+  };
 
   // An array of 3 vectors which represents 3 vertices
   static const GLfloat g_vertex_buffer_data[] = {
@@ -70,7 +78,7 @@ int main() try
     1.0f,  -1.0f, 1.0f   //
   };
 
-  ArrayBuffer vertexBuffer(g_vertex_buffer_data, sizeof(g_vertex_buffer_data), 3, 0);
+  ArrayBuffer vertexBuffer(g_vertex_buffer_data, sizeof(g_vertex_buffer_data) / sizeof(*g_vertex_buffer_data), 3, 0);
   vertexBuffer.activate();
 
   // One color for each vertex. They were generated randomly.
@@ -112,7 +120,7 @@ int main() try
     0.820f, 0.883f, 0.371f, //
     0.982f, 0.099f, 0.879f  //
   };
-  ArrayBuffer colorBuffer(g_color_buffer_data, sizeof(g_color_buffer_data), 3, 1);
+  ArrayBuffer colorBuffer(g_color_buffer_data, sizeof(g_color_buffer_data) / sizeof(*g_color_buffer_data), 3, 1);
   colorBuffer.activate();
 
   // Make the array with texture coordinates
@@ -165,8 +173,36 @@ int main() try
     0, 0.9, //
     0, 0.9  //
   };
-  ArrayBuffer uvBuffer(g_uv_buffer_data, sizeof(g_uv_buffer_data), 2, 2);
+  ArrayBuffer uvBuffer(g_uv_buffer_data, sizeof(g_uv_buffer_data) / sizeof(*g_uv_buffer_data), 2, 2);
   uvBuffer.activate();
+  std::vector<GLfloat> sphereData;
+  auto R = 100;
+  for (auto y = 0; y < R; ++y)
+  {
+    // x^2 + y^2 = R^2;
+    // x = +/-sqrt(R^2 - y^2);
+    auto x2 = static_cast<int>(sqrt(R * R - y * y));
+    auto x1 = -x2;
+    for (auto x = x1; x <= x2; ++x)
+    {
+      sphereData.push_back(x);
+      sphereData.push_back(y);
+      sphereData.push_back(x + 1);
+      sphereData.push_back(y + 1);
+      sphereData.push_back(x + 1);
+      sphereData.push_back(y);
+
+      sphereData.push_back(x);
+      sphereData.push_back(y);
+      sphereData.push_back(x);
+      sphereData.push_back(y + 1);
+      sphereData.push_back(x + 1);
+      sphereData.push_back(y + 1);
+    }
+  }
+
+  ArrayBuffer sphereBuffer(sphereData.data(), sphereData.size(), 2, 3);
+  sphereBuffer.activate();
 
   // Load texture
   sdl::Texture texture(r.get(), sdl::Surface("texture.bmp").get());
@@ -184,8 +220,11 @@ int main() try
   Var<int> x("x");
   Var<int> y("y");
   Var<glm::mat4> mvp("mvp");
+  Var<glm::mat4> mvp2("mvp");
 
   ShaderProgram shader(VertexFile, FragmentFile, alpha, x, y, mvp);
+  ShaderProgram sphereShader("sphere.vertexshader", "sphere.fragmentshader", mvp2);
+
   while (!done)
   {
     while (e.poll()) {}
@@ -201,8 +240,8 @@ int main() try
 
     // Camera matrix
     glm::mat4 View =
-      glm::lookAt(glm::vec3(4.5, 10, 4.5),
-                  glm::vec3(4.5, 4.5, 0), // and looks at the origin
+      glm::lookAt(glm::vec3(3, camY, 3),
+                  glm::vec3(3, 3, 0), // and looks at the origin
                   glm::vec3(0, 0, 1)  // Head is up (set to 0,-1,0 to look upside-down)
       );
 
@@ -210,6 +249,7 @@ int main() try
     glm::mat4 Model = glm::mat4(1.0f);
     // Our ModelViewProjection : multiplication of our 3 matrices
     mvp = Projection * View * Model; // Re
+    mvp.update();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     alpha.update();
@@ -218,11 +258,15 @@ int main() try
       {
         x.update();
         y.update();
-        mvp.update();
         // Draw the triangle !
         glDrawArrays(
           GL_TRIANGLES, 0, 3 * 12); // Starting from vertex 0; 3 vertices total -> 1 triangle
       }
+
+    sphereShader.use();
+    mvp2 = Projection * View * Model;
+    mvp2.update();
+    glDrawArrays(GL_TRIANGLES, 0, sphereData.size() / 2);
     alpha += 0.002;
     r.present();
   }

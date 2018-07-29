@@ -1,14 +1,11 @@
 #include "gl_check_error.hpp"
+#include <stdexcept>
 
 #define GL_GLEXT_PROTOTYPES 1
 #include <SDL_opengl.h>
 
-#include <sstream>
-#include <stdexcept>
-
 static const char *toString(GLenum err)
 {
-
 #define _(x) \
   case x: return #x
   switch (err)
@@ -26,13 +23,16 @@ static const char *toString(GLenum err)
   return "unknown error";
 }
 
-void checkError(const char *file, int line)
+namespace internal
 {
+  bool checkGlError(const char *file, int line, std::ostream &strm)
+  {
+    GLenum err = glGetError();
+    if (err == GL_NO_ERROR)
+      return true;
+    strm << file << ":" << line << " " << err << " " << toString(err);
+    return false;
+  }
 
-  GLenum err = glGetError();
-  if (err == GL_NO_ERROR)
-    return;
-  std::ostringstream strm;
-  strm << file << ":" << line << " " << err << " " << toString(err);
-  throw std::runtime_error(strm.str());
-}
+  void outputArgs(std::ostringstream &strm) { throw std::runtime_error(strm.str()); }
+} // namespace internal

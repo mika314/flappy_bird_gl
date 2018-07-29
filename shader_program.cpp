@@ -116,7 +116,7 @@ ShaderProgram::~ShaderProgram()
 {
   if (programId == 0xffffffffU)
     return;
-  glDeleteShader(programId);
+  glDeleteProgram(programId);
 }
 
 void ShaderProgram::use()
@@ -130,7 +130,7 @@ void ShaderProgram::use()
     try
     {
       auto newProgramId = loadShaders(vertexFileName.c_str(), fragmentFileName.c_str());
-      glDeleteShader(programId);
+      glDeleteProgram(programId);
       programId = newProgramId;
       glUseProgram(programId);
       updateVars();
@@ -140,6 +140,7 @@ void ShaderProgram::use()
       std::cerr << e.what();
     }
   }
+  glUseProgram(programId);
 }
 
 void ShaderProgram::updateVars()
