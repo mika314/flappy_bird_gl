@@ -7,6 +7,24 @@ ArrayBuffer::ArrayBuffer(const GLfloat *data, int size, int aCNum, int aAttribut
   glBufferData(GL_ARRAY_BUFFER, size * sizeof(*data), data, GL_STATIC_DRAW);
 }
 
+
+ArrayBuffer::ArrayBuffer(const glm::vec3 *data, int size, int aAttribute) :
+  attribute(aAttribute), cNum(3), type(GL_FLOAT)
+{
+  glGenBuffers(1, &id);
+  glBindBuffer(GL_ARRAY_BUFFER, id);
+  glBufferData(GL_ARRAY_BUFFER, size * sizeof(*data), data, GL_STATIC_DRAW);
+}
+
+ArrayBuffer::ArrayBuffer(const glm::vec2 *data, int size, int aAttribute) :
+  attribute(aAttribute), cNum(2), type(GL_FLOAT)
+{
+  glGenBuffers(1, &id);
+  glBindBuffer(GL_ARRAY_BUFFER, id);
+  glBufferData(GL_ARRAY_BUFFER, size * sizeof(*data), data, GL_STATIC_DRAW);
+}
+
+
 ArrayBuffer::ArrayBuffer(const GLint *data, int size, int aCNum, int aAttribute) : attribute(aAttribute), cNum(aCNum), type(GL_INT)
 {
   glGenBuffers(1, &id);
