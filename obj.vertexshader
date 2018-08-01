@@ -39,6 +39,7 @@ void main()
 {
   gl_Position.xyz = vertexPosition_modelspace;
   gl_Position.w = 1.0;
-  gl_Position = mvp * translate(vec3(2, -1, 0)) * rotate(alpha, vec3(0, 1, 0)) * rotate(3.1415 / 2, vec3(0, 0, 1))* gl_Position;
+  gl_Position = mvp * translate(vec3(2, -1, 0)) * rotate(alpha, vec3(0, 1, 0)) *
+                rotate(alpha * 10, vec3(1, 0, 0)) * rotate(3.1415 / 2, vec3(0, 0, 1)) * gl_Position;
   uv = vertexUV;
 }

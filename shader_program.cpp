@@ -132,8 +132,6 @@ void ShaderProgram::use()
       auto newProgramId = loadShaders(vertexFileName.c_str(), fragmentFileName.c_str());
       glDeleteProgram(programId);
       programId = newProgramId;
-      glUseProgram(programId);
-      updateVars();
     }
     catch (CompileShaderError &e)
     {
@@ -141,6 +139,7 @@ void ShaderProgram::use()
     }
   }
   glUseProgram(programId);
+  updateVars();
 }
 
 void ShaderProgram::updateVars()

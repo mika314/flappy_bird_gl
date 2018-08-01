@@ -173,17 +173,14 @@ int main() try
   glDepthFunc(GL_LESS);
 
   Var<float> alpha("alpha", 0);
-  Var<float> alpha3("alpha", 0);
   Var<int> x("x");
   Var<int> y("y");
   Var<glm::mat4> mvp("mvp");
-  Var<glm::mat4> mvp2("mvp");
-  Var<glm::mat4> mvp3("mvp");
 
   ShaderProgram cubeShader(
     "simple_vertex_shader.vertexshader", "simple_fragment_shader.fragmentshader", alpha, x, y, mvp);
-  ShaderProgram sphereShader("sphere.vertexshader", "sphere.fragmentshader", mvp2);
-  ShaderProgram objShader("obj.vertexshader", "obj.fragmentshader", mvp3, alpha3);
+  ShaderProgram sphereShader("sphere.vertexshader", "sphere.fragmentshader", mvp);
+  ShaderProgram objShader("obj.vertexshader", "obj.fragmentshader", mvp, alpha);
 
   // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
   glm::mat4 Projection =
@@ -231,17 +228,14 @@ int main() try
       }
 
     sphereShader.use();
-    mvp2 = Projection * View * Model;
-    mvp2.update();
+    mvp.update();
     sphereBuffer.activate();
     glDrawArrays(GL_TRIANGLES, 0, sphereData.size() / 2);
     alpha += 0.002;
 
     objShader.use();
-    mvp3 = Projection * View * Model;
-    mvp3.update();
-    alpha3 += 0.002;
-    alpha3.update();
+    mvp.update();
+    alpha.update();
     cube.activate();
     robot.activate();
 
