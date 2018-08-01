@@ -3,7 +3,6 @@
 layout(location = 0) in vec3 vertexPosition_modelspace;
 layout(location = 1) in vec2 vertexUV;
 layout(location = 2) in vec3 vertexNormal;
-uniform float alpha;
 uniform mat4 mvp;
 out vec2 uv;
 
@@ -39,7 +38,6 @@ void main()
 {
   gl_Position.xyz = vertexPosition_modelspace;
   gl_Position.w = 1.0;
-  gl_Position = mvp * translate(vec3(2, -1, 0)) * rotate(alpha, vec3(0, 1, 0)) *
-                rotate(alpha * 10, vec3(1, 0, 0)) * rotate(3.1415 / 2, vec3(0, 0, 1)) * gl_Position;
+  gl_Position = mvp * gl_Position;
   uv = vertexUV;
 }
