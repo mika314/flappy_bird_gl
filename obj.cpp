@@ -7,7 +7,7 @@ class ObjData
 public:
   ObjData(const std::string &fileName)
   {
-    std::ifstream obj(fileName + ".obj");
+    std::ifstream obj("data/" + fileName + ".obj");
     std::string line;
 
     std::vector<glm::vec3> tmpVertices;
@@ -21,15 +21,44 @@ public:
       strm >> type;
       if (type == "f") // faces
       {
-        for (int i = 0; i < 4; ++i)
+        std::vector<std::tuple<int,int,int>> idxs;
+        while (strm)
         {
           std::string tmp;
           std::getline(strm, tmp, '/');
-          vertices.push_back(tmpVertices[std::stoi(tmp) - 1]);
+          int v = !tmp.empty() ? std::stoi(tmp) - 1 : -1;
           std::getline(strm, tmp, '/');
-          uvs.push_back(tmpUvs[std::stoi(tmp) - 1]);
-          std::getline(strm, tmp, i != 3 ? ' ' : '\n');
-          normals.push_back(tmpNormals[std::stoi(tmp) - 1]);
+          int uv = !tmp.empty() ? std::stoi(tmp) - 1 : -1;
+          std::getline(strm, tmp, ' ');
+          int normal = !tmp.empty() ? std::stoi(tmp) - 1 : -1;
+          if (!strm)
+            break;
+          idxs.emplace_back(v, uv, normal);
+        }
+        if (idxs.size() >= 3)
+        {
+          auto addIdx = [&](int i) {
+            auto idx = idxs[i];
+            if (std::get<0>(idx) >= 0)
+              vertices.push_back(tmpVertices[std::get<0>(idx)]);
+            else
+              vertices.emplace_back();
+            if (std::get<1>(idx) >= 0)
+              uvs.push_back(tmpUvs[std::get<1>(idx)]);
+            else
+              uvs.emplace_back();
+            if (std::get<2>(idx) >= 0)
+              normals.push_back(tmpNormals[std::get<2>(idx)]);
+            else
+              normals.emplace_back();
+          };
+
+          for (size_t i = 1; i < idxs.size() - 1; ++i)
+          {
+            addIdx(0);
+            addIdx(i);
+            addIdx(i + 1);
+          }
         }
       }
       // else if (type == "mtlib")
@@ -61,25 +90,34 @@ public:
   std::vector<glm::vec3> normals;
 };
 
-Obj::Obj(SDL_Renderer*renderer, const std::string &fileName):
-  texture(renderer, sdl::Surface(fileName + ".bmp").get()),
-  objData(std::make_unique<ObjData>(fileName)),
-  vertices(objData->vertices.data(), objData->vertices.size(), 0),
-  uvs(objData->uvs.data(), objData->uvs.size(), 1),
-  normals(objData->normals.data(), objData->normals.size(), 2),
-  n(objData->vertices.size())
+static bool fileExists(const std::string&fileName)
+{
+  return std::ifstream("data/" + fileName).good();
+}
+
+Obj::Obj(SDL_Renderer *renderer, const std::string &fileName)
+  : texture(fileExists(fileName + ".bmp")
+              ? std::make_unique<sdl::Texture>(renderer, sdl::Surface("data/" + fileName + ".bmp").get())
+              : nullptr),
+    objData(std::make_unique<ObjData>(fileName)),
+    vertices(objData->vertices.data(), objData->vertices.size(), 0),
+    uvs(objData->uvs.data(), objData->uvs.size(), 1),
+    normals(objData->normals.data(), objData->normals.size(), 2),
+    n(objData->vertices.size())
 {
   objData = nullptr;
 }
 
-Obj::~Obj()
-{}
+Obj::~Obj() {}
 
 void Obj::activate()
 {
   vertices.activate();
-  uvs.activate();
   normals.activate();
-  texture.glBind(nullptr, nullptr);
-  glDrawArrays(GL_QUADS, 0, n);
+  if (texture)
+  {
+    uvs.activate();
+    texture->glBind(nullptr, nullptr);
+  }
+  glDrawArrays(GL_TRIANGLES, 0, n);
 }

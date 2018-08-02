@@ -17,7 +17,7 @@ public:
   ~Obj();
 
 private:
-  sdl::Texture texture;
+  std::unique_ptr<sdl::Texture> texture;
   std::unique_ptr<ObjData> objData;
   ArrayBuffer vertices;
   ArrayBuffer uvs;
