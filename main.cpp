@@ -69,7 +69,9 @@ int main() try
   glm::mat4 Projection =
     glm::perspective(glm::radians(45.0f), (float)Width / (float)Height, 0.1f, 100.0f);
 
-  Obj bird(r.get(), "bird");
+  std::vector<std::unique_ptr<Obj>> bird;
+  for (int i = 0; i < 4; ++i)
+    bird.push_back(std::make_unique<Obj>(r.get(), "bird" + std::to_string(i + 1)));
   Obj pipe(r.get(), "pipe");
   std::vector<std::unique_ptr<Obj>> digits;
   for (int i = 0; i < 10; ++i)
@@ -106,7 +108,7 @@ int main() try
                           glm::mat4(1.0f);
     mvp = Projection * View * ModelBird; // Re
     mvp.update();
-    bird.activate();
+    bird[SDL_GetTicks() / 50 % bird.size()]->activate();
 
     const auto SpacingK = 13;
     {
