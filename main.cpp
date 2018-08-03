@@ -69,13 +69,14 @@ int main() try
   glm::mat4 Projection =
     glm::perspective(glm::radians(45.0f), (float)Width / (float)Height, 0.1f, 100.0f);
 
+  TextureLibrary textureLibrary(r.get());
   std::vector<std::unique_ptr<Obj>> bird;
   for (int i = 0; i < 4; ++i)
-    bird.push_back(std::make_unique<Obj>(r.get(), "bird" + std::to_string(i + 1)));
-  Obj pipe(r.get(), "pipe");
+    bird.push_back(std::make_unique<Obj>(textureLibrary, "bird" + std::to_string(i + 1), "bird"));
+  Obj pipe(textureLibrary, "pipe");
   std::vector<std::unique_ptr<Obj>> digits;
   for (int i = 0; i < 10; ++i)
-    digits.push_back(std::make_unique<Obj>(r.get(), std::to_string(i)));
+    digits.push_back(std::make_unique<Obj>(textureLibrary, std::to_string(i)));
 
   auto currentTime = SDL_GetTicks();
   auto isCollision = false;

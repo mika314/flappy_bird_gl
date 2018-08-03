@@ -90,16 +90,11 @@ public:
   std::vector<glm::vec3> normals;
 };
 
-static bool fileExists(const std::string&fileName)
-{
-  return std::ifstream("data/" + fileName).good();
-}
-
-Obj::Obj(SDL_Renderer *renderer, const std::string &fileName)
-  : texture(fileExists(fileName + ".bmp")
-              ? std::make_unique<sdl::Texture>(renderer, sdl::Surface("data/" + fileName + ".bmp").get())
-              : nullptr),
-    objData(std::make_unique<ObjData>(fileName)),
+Obj::Obj(TextureLibrary &textureLibrary,
+         const std::string &objFileName,
+         const std::string &textureFileName)
+  : texture(textureLibrary.get(textureFileName.empty() ? objFileName : textureFileName)),
+    objData(std::make_unique<ObjData>(objFileName)),
     vertices(objData->vertices.data(), objData->vertices.size(), 0),
     uvs(objData->uvs.data(), objData->uvs.size(), 1),
     normals(objData->normals.data(), objData->normals.size(), 2),

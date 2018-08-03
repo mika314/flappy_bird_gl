@@ -1,6 +1,7 @@
 #pragma once
 #include "array_buffer.hpp"
 #include "sdlpp.hpp"
+#include "texture_library.hpp"
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <memory>
@@ -12,12 +13,14 @@ class ObjData;
 class Obj
 {
 public:
-  Obj(SDL_Renderer *renderer, const std::string &fileName);
+  Obj(TextureLibrary &textureLibrary,
+      const std::string &objFileName,
+      const std::string &textureFileName = std::string());
   void activate();
   ~Obj();
 
 private:
-  std::unique_ptr<sdl::Texture> texture;
+  sdl::Texture* texture;
   std::unique_ptr<ObjData> objData;
   ArrayBuffer vertices;
   ArrayBuffer uvs;
