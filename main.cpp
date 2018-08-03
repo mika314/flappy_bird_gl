@@ -63,7 +63,9 @@ int main() try
   glDepthFunc(GL_LESS);
 
   Var<glm::mat4> mvp("mvp");
+  Var<float> explodeTime("explodeTime");
   ShaderProgram objShader("obj.vertexshader", "obj.fragmentshader", mvp);
+  ShaderProgram explodeShader("explode.vertexshader", "obj.fragmentshader", mvp, explodeTime);
   ShaderProgram digitShader("digit.vertexshader", "obj.fragmentshader", mvp);
 
   // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
@@ -102,7 +104,14 @@ int main() try
       glClearColor(0.5f, 0.7f, 1.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    objShader.use();
+    if (!isCollision)
+      objShader.use();
+    else
+    {
+      explodeTime += 0.1f;
+      explodeShader.use();
+      explodeTime.update();
+    }
     const auto BirdScreenX = -12.0f;
     glm::mat4 ModelBird = glm::translate(glm::vec3(BirdScreenX, 0, birdY)) *
                           glm::rotate(-4.0f * birdVY, glm::vec3(0.0f, 1.0f, 0.0f)) *
@@ -175,7 +184,10 @@ int main() try
                        (birdY < pipes[index] - 2 || birdY > pipes[index] + 2)) ||
                       (birdY < -10);
         if (isCollision)
+        {
           countDown = currentTime + 2000;
+          explodeTime = 1;
+        }
       }
 
       if (isCollision && (currentTime > countDown))
