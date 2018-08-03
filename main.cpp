@@ -64,6 +64,7 @@ int main() try
 
   Var<glm::mat4> mvp("mvp");
   ShaderProgram objShader("obj.vertexshader", "obj.fragmentshader", mvp);
+  ShaderProgram digitShader("digit.vertexshader", "obj.fragmentshader", mvp);
 
   // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
   glm::mat4 Projection =
@@ -113,6 +114,7 @@ int main() try
 
     const auto SpacingK = 13;
     {
+      digitShader.use();
       int n = (birdX + BirdScreenX + 3.0) / SpacingK + 1;
       int pos = 0;
       do
@@ -131,6 +133,7 @@ int main() try
       alpha += 0.03;
     }
 
+    objShader.use();
     for (int x = (birdX + BirdScreenX) / SpacingK; x <= (birdX - BirdScreenX + SpacingK) / SpacingK;
          ++x)
     {
