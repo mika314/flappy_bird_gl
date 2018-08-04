@@ -14,6 +14,23 @@
 #include <iostream>
 #include <vector>
 
+std::vector<int16_t> loadWav(const std::string &fileName)
+{
+  SDL_AudioSpec wav_spec;
+  Uint32 wav_length;
+  Uint8 *wav_buffer;
+  if (SDL_LoadWAV(("data/" + fileName + ".wav").c_str(), &wav_spec, &wav_buffer, &wav_length) ==
+      NULL)
+  {
+    fprintf(stderr, "Could not open test.wav: %s\n", SDL_GetError());
+  }
+  std::vector<int16_t> res(wav_length / sizeof(int16_t));
+  memcpy(res.data(), wav_buffer, wav_length);
+  /* Do stuff with the WAV data, and then... */
+  SDL_FreeWAV(wav_buffer);
+  return res;
+}
+
 int main() try
 {
   sdl::Init init(SDL_INIT_EVERYTHING);
@@ -22,6 +39,17 @@ int main() try
   sdl::Window w("Flappy Bird", 64, 126, Width, Height, SDL_WINDOW_BORDERLESS | SDL_WINDOW_OPENGL);
 
   sdl::Renderer r(w.get(), -1, SDL_RENDERER_PRESENTVSYNC);
+
+  auto coin = loadWav("coin");
+  auto explosion = loadWav("explosion");
+
+  SDL_AudioSpec desired;
+  desired.freq = 44100;
+  desired.format = AUDIO_S16;
+  desired.channels = 1;
+  desired.samples = 4096;
+  sdl::Audio audio(nullptr, false, &desired, nullptr, 0);
+  audio.pause(false);
   sdl::EventHandler e;
   bool done = false;
   float camY = -22;
@@ -85,6 +113,7 @@ int main() try
   auto isCollision = false;
   auto countDown = currentTime;
   auto alpha = 0.0f;
+  int oldN = 0;
   while (!done)
   {
     while (e.poll()) {}
@@ -125,6 +154,9 @@ int main() try
     {
       digitShader.use();
       int n = (birdX + BirdScreenX + 3.0) / SpacingK + 1;
+      if (oldN != n)
+        audio.queue(coin.data(), coin.size() * sizeof(int16_t));
+      oldN = n;
       int pos = 0;
       do
       {
@@ -185,6 +217,7 @@ int main() try
                       (birdY < -10);
         if (isCollision)
         {
+          audio.queue(explosion.data(), explosion.size() / sizeof(int16_t));
           countDown = currentTime + 2000;
           explodeTime = 1;
         }
