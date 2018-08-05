@@ -1,4 +1,5 @@
 #include "array_buffer.hpp"
+#include "mixer.hpp"
 #include "obj.hpp"
 #include "sdlpp.hpp"
 #include "shader_program.hpp"
@@ -20,13 +21,11 @@ std::vector<int16_t> loadWav(const std::string &fileName)
   Uint32 wav_length;
   Uint8 *wav_buffer;
   if (SDL_LoadWAV(("data/" + fileName + ".wav").c_str(), &wav_spec, &wav_buffer, &wav_length) ==
-      NULL)
-  {
-    fprintf(stderr, "Could not open test.wav: %s\n", SDL_GetError());
-  }
+      nullptr)
+    std::cerr << "Could not open test.wav: " << SDL_GetError() << "\n";
   std::vector<int16_t> res(wav_length / sizeof(int16_t));
   memcpy(res.data(), wav_buffer, wav_length);
-  /* Do stuff with the WAV data, and then... */
+  // Do stuff with the WAV data, and then...
   SDL_FreeWAV(wav_buffer);
   return res;
 }
@@ -43,13 +42,8 @@ int main() try
   auto coin = loadWav("coin");
   auto explosion = loadWav("explosion");
 
-  SDL_AudioSpec desired;
-  desired.freq = 44100;
-  desired.format = AUDIO_S16;
-  desired.channels = 1;
-  desired.samples = 4096;
-  sdl::Audio audio(nullptr, false, &desired, nullptr, 0);
-  audio.pause(false);
+  Mixer mixer;
+
   sdl::EventHandler e;
   bool done = false;
   float camY = -22;
@@ -155,7 +149,7 @@ int main() try
       digitShader.use();
       int n = (birdX + BirdScreenX + 3.0) / SpacingK + 1;
       if (oldN != n)
-        audio.queue(coin.data(), coin.size() * sizeof(int16_t));
+        mixer.play(coin);
       oldN = n;
       int pos = 0;
       do
@@ -217,7 +211,7 @@ int main() try
                       (birdY < -10);
         if (isCollision)
         {
-          audio.queue(explosion.data(), explosion.size() / sizeof(int16_t));
+          mixer.play(explosion);
           countDown = currentTime + 2000;
           explodeTime = 1;
         }
