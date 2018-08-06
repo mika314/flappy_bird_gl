@@ -1,4 +1,3 @@
-
 layout(location = 0) in vec3 vertexPosition_modelspace;
 layout(location = 1) in vec2 vertexUV;
 layout(location = 2) in vec3 vertexNormal;
@@ -36,6 +35,6 @@ void main()
 {
   gl_Position.xyz = vertexPosition_modelspace;
   gl_Position.w = 1.0;
-  gl_Position = mvp * gl_Position;
+  gl_Position = mvp * rotate(angle, vec3(0, 1, 0)) * gl_Position;
   uv = vertexUV;
 }

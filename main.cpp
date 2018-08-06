@@ -86,7 +86,9 @@ int main() try
 
   Var<glm::mat4> mvp("mvp");
   Var<float> explodeTime("explodeTime");
+  Var<float> pipeAngle("angle");
   ShaderProgram objShader("obj.vertexshader", "obj.fragmentshader", mvp);
+  ShaderProgram pipeShader("pipe.vertexshader", "obj.fragmentshader", mvp, pipeAngle);
   ShaderProgram explodeShader("explode.vertexshader", "obj.fragmentshader", mvp, explodeTime);
   ShaderProgram digitShader("digit.vertexshader", "obj.fragmentshader", mvp);
 
@@ -168,7 +170,9 @@ int main() try
       alpha += 0.03;
     }
 
-    objShader.use();
+    pipeShader.use();
+    pipeAngle += 0.01;
+    pipeAngle.update();
     for (int x = (birdX + BirdScreenX) / SpacingK; x <= (birdX - BirdScreenX + SpacingK) / SpacingK;
          ++x)
     {
