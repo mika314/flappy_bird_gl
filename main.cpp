@@ -1,8 +1,8 @@
-#include "array_buffer.hpp"
 #include "mixer.hpp"
-#include "obj.hpp"
-#include "sdlpp.hpp"
-#include "shader_program.hpp"
+#include <sdlpp.hpp>
+#include <shade/array_buffer.hpp>
+#include <shade/obj.hpp>
+#include <shade/shader_program.hpp>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/transform.hpp>
@@ -87,10 +87,10 @@ int main() try
   Var<glm::mat4> mvp("mvp");
   Var<float> explodeTime("explodeTime");
   Var<float> pipeAngle("angle");
-  ShaderProgram objShader("obj.vertexshader", "obj.fragmentshader", mvp);
-  ShaderProgram pipeShader("pipe.vertexshader", "obj.fragmentshader", mvp, pipeAngle);
-  ShaderProgram explodeShader("explode.vertexshader", "obj.fragmentshader", mvp, explodeTime);
-  ShaderProgram digitShader("digit.vertexshader", "obj.fragmentshader", mvp);
+  ShaderProgram objShader("obj", "obj", mvp);
+  ShaderProgram pipeShader("pipe", "obj", mvp, pipeAngle);
+  ShaderProgram explodeShader("explode", "obj", mvp, explodeTime);
+  ShaderProgram digitShader("digit", "obj", mvp);
 
   // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
   glm::mat4 Projection =
