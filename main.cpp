@@ -1,5 +1,5 @@
 #include "mixer.hpp"
-#include <sdlpp.hpp>
+#include <sdlpp/sdlpp.hpp>
 #include <shade/array_buffer.hpp>
 #include <shade/obj.hpp>
 #include <shade/shader_program.hpp>

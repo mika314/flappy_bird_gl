@@ -1,5 +1,5 @@
 #pragma once
-#include "sdlpp.hpp"
+#include "sdlpp/sdlpp.hpp"
 #include <deque>
 #include <vector>
 
